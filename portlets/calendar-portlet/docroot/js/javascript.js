@@ -217,21 +217,37 @@ AUI.add(
 
 			deleteEvent: function(schedulerEvent, success) {
 				var instance = this;
+				
+				instance.invokeActionURL(
+						{
+							actionName: 'moveCalendarBookingToTrash',
+							callback: function(data) {
+								schedulerEvent.set(
+										'loading',
+										false,
+										{
+											silent: true
+										}
+								);
 
-				instance.invokeService(
-					{
-						'/calendar-portlet.calendarbooking/move-calendar-booking-to-trash': {
-							calendarBookingId: schedulerEvent.get('calendarBookingId')
-						}
-					},
-					{
-						success: function(data) {
-							if (success) {
-								success.call(instance, data);
+								if (data) {
+									if (data.exception) {
+										instance.destroyEvent(schedulerEvent);
+									}
+									else {
+										instance.setEventAttrs(schedulerEvent, data);
+
+										if (success) {
+											success.call(instance, data);
+										}
+									}
+								}
+							},
+							payload: {
+								calendarBookingId: schedulerEvent.get('calendarBookingId')
 							}
 						}
-					}
-				);
+					);
 			},
 
 			deleteEventInstance: function(schedulerEvent, allFollowing, success) {
